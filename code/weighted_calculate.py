@@ -51,80 +51,84 @@ def weightedCalc(weibo):
         score += sen_score
     return score
 
-pos_dict_file = "../dict/pos_dict.txt"
-pos_f = open(pos_dict_file, 'r', encoding='utf-8')
-pos_dict = {}
-for line in pos_f:
-        lines=line.split('\n')
-        length = len(lines[0])
-        if length > 0:
-            if length not in pos_dict.keys():
-                pos_dict[length] = []
-            if lines[0] not in pos_dict[length]:
-                pos_dict[length].append(lines[0])
-pos_f.close()
 
-neg_dict_file = "../dict/neg_dict.txt"
-neg_f = open(neg_dict_file, 'r', encoding='utf-8')
-neg_dict = {}
-for line in neg_f:
-        lines=line.split('\n')
-        length = len(lines[0])
-        if length > 0:
-            if length not in neg_dict.keys():
-                neg_dict[length] = []
-            if lines[0] not in neg_dict[length]:
-                neg_dict[length].append(lines[0])
-neg_f.close()
+if __name__ == "__main__":
+    pos_dict_file = "../dict/pos_dict.txt"
+    pos_f = open(pos_dict_file, 'r', encoding='utf-8')
+    pos_dict = {}
+    for line in pos_f:
+            lines=line.split('\n')
+            length = len(lines[0])
+            if length > 0:
+                if length not in pos_dict.keys():
+                    pos_dict[length] = []
+                if lines[0] not in pos_dict[length]:
+                    pos_dict[length].append(lines[0])
+    pos_f.close()
 
-adv_degree_file = "../dict/adv_of_degree.txt"
-adv_degree_f = open(adv_degree_file, 'r', encoding='utf-8')
-adv_degree = {}
-level = 4
-for line in adv_degree_f:
-    if line == '\n':
-        level -= 1
-    else:
-        line = line.strip()
-        if level == 4:
-            adv_degree[line] = 2
-        if level == 3:
-            adv_degree[line] = 1.75
-        if level == 2:
-            adv_degree[line] = 1.5
-        if level == 1:
-            adv_degree[line] = 0.5
-adv_degree_f.close()
+    neg_dict_file = "../dict/neg_dict.txt"
+    neg_f = open(neg_dict_file, 'r', encoding='utf-8')
+    neg_dict = {}
+    for line in neg_f:
+            lines=line.split('\n')
+            length = len(lines[0])
+            if length > 0:
+                if length not in neg_dict.keys():
+                    neg_dict[length] = []
+                if lines[0] not in neg_dict[length]:
+                    neg_dict[length].append(lines[0])
+    neg_f.close()
 
-inversion_word = ['不', '没', '无', '非', '莫', '弗', '毋', '未', '否', '别',
-                  '無', '休', '不曾', '未必', '没有', '不要', '难以', '未曾']
+    adv_degree_file = "../dict/adv_of_degree.txt"
+    adv_degree_f = open(adv_degree_file, 'r', encoding='utf-8')
+    adv_degree = {}
+    level = 4
+    for line in adv_degree_f:
+        if line == '\n':
+            level -= 1
+        else:
+            line = line.strip()
+            if level == 4:
+                adv_degree[line] = 2
+            if level == 3:
+                adv_degree[line] = 1.75
+            if level == 2:
+                adv_degree[line] = 1.5
+            if level == 1:
+                adv_degree[line] = 0.5
+    adv_degree_f.close()
 
-# qetina    Gogo-MR0033   LiverpoolSaintyGerrard  小小奸细    lo小乖ve  管宝程   yinyin5366
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
+    inversion_word = ['不', '没', '无', '非', '莫', '弗', '毋', '未', '否', '别',
+                      '無', '休', '不曾', '未必', '没有', '不要', '难以', '未曾']
 
-draw_data = []
-name = "Gogo-MR0033"
-weibos = get_weibos_by_name(name)
-cws_model = "F:/ltp_data/cws.model"
-segmentor = Segmentor()
-segmentor.load(cws_model)
-date_index = []
-for weibo in weibos:
-    weibo_list = []
-    sentences = SentenceSplitter.split(weibo[1])
-    for s in sentences:
-        words = segmentor.segment(s)
-        text = " ".join(words)
-        weibo_list.append(text)
-    print(weibo_list)
-    draw_data.append(weightedCalc(weibo_list))
-    date_index.append(weibo[0])
-segmentor.release()
+    # qetina    Gogo-MR0033   LiverpoolSaintyGerrard  小小奸细    lo小乖ve  管宝程   yinyin5366
+    import pandas as pd
+    import matplotlib.pyplot as plt
 
-df = pd.DataFrame(draw_data, index=date_index, columns=['Emotion Score'])
+    plt.rcParams['font.sans-serif'] = ['SimHei']
+    plt.rcParams['axes.unicode_minus'] = False
+    draw_data = []
+    # name = "Gogo-MR0033"
+    name = input("Input username: ")
+    weibos = get_weibos_by_name(name)
+    cws_model = "F:/ltp_data/cws.model"
+    segmentor = Segmentor()
+    segmentor.load(cws_model)
+    date_index = []
+    for weibo in weibos:
+        weibo_list = []
+        sentences = SentenceSplitter.split(weibo[1])
+        for s in sentences:
+            words = segmentor.segment(s)
+            text = " ".join(words)
+            weibo_list.append(text)
+        # print(weibo_list)
+        draw_data.append(weightedCalc(weibo_list))
+        date_index.append(weibo[0])
+    segmentor.release()
 
-df.index = pd.to_datetime(df.index).to_period(freq='S')
-p = df.plot(kind='bar', title=name+'\' emotion swings')
-plt.show(p)
+    df = pd.DataFrame(draw_data, index=date_index, columns=['Emotion Score'])
+
+    df.index = pd.to_datetime(df.index).to_period(freq='S')
+    p = df.plot(kind='bar', title=name+'\' emotion swings')
+    plt.show(p)
